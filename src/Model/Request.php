@@ -2,6 +2,8 @@
 
 namespace Egretos\RestModel;
 
+use GuzzleHttp\RequestOptions;
+
 final class Request
 {
     const
@@ -23,12 +25,54 @@ final class Request
 
     public $headers = [];
 
-    public $form_params = null;
+    public $form_params;
 
-    public $json = null;
+    public $auth;
+
+    public $json;
+
+    public $cookies;
+
+    public $query_params;
+
+    public $multipart;
+
+    public $body;
 
     public function toGuzzleOptions() {
         $options = [];
+
+        if ($this->auth) {
+            $options[RequestOptions::AUTH] = $this->auth;
+        }
+
+        if ($this->headers) {
+            $options[RequestOptions::HEADERS] = $this->headers;
+        }
+
+        if ($this->form_params) {
+            $options[RequestOptions::FORM_PARAMS] = $this->form_params;
+        }
+
+        if ($this->json) {
+            $options[RequestOptions::JSON] = $this->json;
+        }
+
+        if ($this->cookies) {
+            $options[RequestOptions::COOKIES] = $this->cookies;
+        }
+
+        if ($this->query_params) {
+            $options[RequestOptions::QUERY] = $this->query_params;
+        }
+
+        if ($this->multipart) {
+            $options[RequestOptions::MULTIPART] = $this->multipart;
+        }
+
+        if ($this->body) {
+            $options[RequestOptions::BODY] = $this->body;
+        }
 
         return $options;
     }

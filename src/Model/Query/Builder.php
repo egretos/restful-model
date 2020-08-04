@@ -5,6 +5,10 @@ namespace Egretos\RestModel\Query;
 use Egretos\RestModel\Connection;
 use Egretos\RestModel\Model;
 use Egretos\RestModel\Request;
+use Illuminate\Support\Collection;
+use JsonException;
+use LogicException;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Builder
@@ -12,16 +16,16 @@ use Egretos\RestModel\Request;
  */
 final class Builder
 {
-    use ApiQueries;
+    use ApiQueries, RequestModify;
 
     /** @var Connection */
-    private $connection;
+    protected $connection;
 
     /** @var Request */
-    private $request;
+    protected $request;
 
     /** @var Connection|Model  */
-    private $model;
+    protected $model;
 
     public function __construct($handled)
     {
@@ -33,6 +37,8 @@ final class Builder
             $this->model = $handled;
             $this->connection = $this->model->connection();
         }
+
+        $this->resetRequest();
     }
 
     /**
@@ -44,6 +50,7 @@ final class Builder
 
         if ($resetData) {
             return $this
+                ->resetAuth()
                 ->resetDomain()
                 ->resetRoute();
         }
@@ -68,5 +75,149 @@ final class Builder
         }
 
         return $this;
+    }
+
+    public function resetAuth(array $authData = null, $type = 'basic_auth') {
+        if (!$authData) {
+            $authData = $this->connection->getConfiguration()->get('auth', null);
+            if (!$authData) {
+                /** Quite exit when no auth required */
+                return $this;
+            }
+
+            $type = $authData['type'];
+        }
+
+        switch ($type) {
+            case 'basic_auth':
+                $this->request->auth = [$authData['login'], $authData['password']];
+                break;
+            default:
+                break;
+        }
+
+        return $this;
+    }
+
+    public function send(Request $request = null) {
+        if (!$request) {
+            $request = $this->request;
+        }
+
+        if (!($this->connection instanceof Connection)) {
+            throw new LogicException('Request cannot be sent without connection');
+        }
+
+        if (!($request instanceof Request)) {
+            throw new LogicException('Request is bad!');
+        }
+
+        if ($this->model instanceof Model) {
+            $this->model->lastRequest = $request;
+        }
+
+        return $this->connection->send($request);
+    }
+
+    public function normalizeResponse(ResponseInterface $response, $isArray = false) {
+        $normalizer = $this->connection->getConfiguration('normalizer', null);
+
+        if (!$normalizer) {
+            $normalizer = 'json';
+        }
+
+        if ($isArray) {
+            return $this->loadMassJsonResponse($this->model, $response);
+        }
+
+        switch ($normalizer) {
+            case 'json':
+                return $this->loadJsonResponse($this->model, $response);
+                break;
+        }
+
+        return $this->model;
+    }
+
+    /**
+     * @param Model $model
+     * @param ResponseInterface $response
+     * @return Collection|Model[]
+     * @throws JsonException
+     */
+    public function loadMassJsonResponse(Model $model, ResponseInterface $response) {
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (!is_array($data)) {
+            throw new JsonException('Response body has invalid JSON string');
+        }
+
+        if ($index = $model->responseArrayIndex) {
+            $data = $data[$index];
+        }
+
+        $models = collect();
+
+        foreach ($data as $modelData) {
+            /** @var Model $model */
+            $model = $model->newInstance();
+            $model->lastRequest = $this->request;
+            $model->lastResponse = $response;
+            $model->forceFill($modelData);
+            $model->fillHeaderAttributes( $response->getHeaders() );
+            $model->exists = true;
+
+            $models->add($model);
+        }
+
+        return $models;
+    }
+
+    /**
+     * @param Model $model
+     * @param ResponseInterface $response
+     * @return Model
+     * @throws JsonException
+     */
+    public function loadJsonResponse(Model $model, ResponseInterface $response) {
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (!is_array($data)) {
+            throw new JsonException('Response body has invalid JSON string');
+        }
+
+        if ($index = $model->responseIndex) {
+            $data = $data[$index];
+        }
+
+        $model->lastResponse = $response;
+        $model->forceFill($data);
+        $model->fillHeaderAttributes( $response->getHeaders() );
+        $model->exists = true;
+
+        return $model;
+    }
+
+    public function prepareModelParams($model = null) {
+        if (!$model) {
+            $model = $this->model;
+        }
+
+        if (!($model instanceof Model)) {
+            throw new LogicException('Model is not exists!');
+        }
+
+        $model->newInstance([$model->getRouteKeyName() => $model->getRouteKey()]);
+
+        /** Reset this value before every request */
+        $model->wasRecentlyCreated = false;
+
+        $this->addHeaders($model->getHeaderAttributes());
+
+        switch ($this->connection->getConfiguration('content-type')) {
+            case 'www-form':
+                $this->setFormParams( $model->getSendAbleAttributes() );
+                break;
+        }
     }
 }

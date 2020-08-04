@@ -35,29 +35,42 @@ final class Connection
 
     /**
      * @param string|null $param
-     * @return array|mixed
+     * @param null $default
+     * @return Collection|mixed
      */
-    public function getConfiguration(string $param = null) {
+    public function getConfiguration(string $param = null, $default = null) {
         $connection = $this->connection;
 
         if (!$connection) {
             $connection = $this->config['default_connection'];
         }
 
-        $config = array_merge($this->config, $this->config['connections'][$connection]);
+        $config = collect($this->config->toArray())
+            ->merge($this->config['connections'][$connection]);
 
         if ($param) {
-            return $config['param'];
+            if (isset($config[$param])) {
+                return $config[$param];
+            } elseif ($default) {
+                return $default;
+            } else {
+                return null;
+            }
         } else {
             return $config;
         }
     }
 
+    /**
+     * @return string
+     */
+    public function getPrefix() {
+        return (string) $this->config->get('prefix', null);
+    }
+
     public function send(Request $request) {
         $client = new Client(['base_uri' => $this->getDomain()]);
 
-        dd($request);
-
-        $response = $client->request($request->method, $request->route, $request->toGuzzleOptions());
+        return $client->request($request->method, $request->route, $request->toGuzzleOptions());
     }
 }
