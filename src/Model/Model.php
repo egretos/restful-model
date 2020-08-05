@@ -4,12 +4,21 @@ namespace Egretos\RestModel;
 
 use Egretos\RestModel\Query\Builder;
 use Illuminate\Contracts\Routing\UrlRoutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Model
  * @package Egretos\RestModel
+ *
+ * TODO model event
+ * TODO model -before and -after actions
+ * TODO relations with API
+ * TODO relations with eloquent
+ * TODO Model Facades (from ide-helper)
+ * TODO add scopes
+ * TODO add casts attributes
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {
@@ -24,7 +33,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * @var string|null Connection name in config
      */
-    protected $connection;
+    public $connection;
 
     /**
      * @var string|null Array index which used for in main index response
@@ -61,6 +70,13 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     public $exists = false;
 
     /**
+     * The model attribute's original state.
+     *
+     * @var array
+     */
+    protected $original = [];
+
+    /**
      * Indicates if the model was inserted during the current request lifecycle.
      *
      * @var bool
@@ -85,14 +101,6 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         $this->resetResponseIndexes();
 
         parent::__construct($attributes);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getConnection()
-    {
-        return $this->connection;
     }
 
     /**
@@ -125,11 +133,15 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * @return Builder
      */
-    public function query() {
+    public function newQuery() {
         return new Builder($this);
     }
 
-    public function connection() {
+    public static function query() {
+        return (new static)->newQuery();
+    }
+
+    public function getConnection() {
         return new Connection($this->connection);
     }
 
@@ -143,7 +155,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 
     public function resolveRouteBinding($value, $field = null) {
         $this->setAttribute($this->getRouteKeyName(), $value);
-        return $this->query()->show($value);
+        return $this->newQuery()->show($value);
     }
 
     public function resolveChildRouteBinding($childType, $value, $field) {
@@ -153,7 +165,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     public function getRoute() {
         $resources = [];
 
-        !$this->connection()->getPrefix() ?: $resources[] = $this->connection()->getPrefix();
+        !$this->getConnection()->getPrefix() ?: $resources[] = $this->getConnection()->getPrefix();
         !$this->urlPrefix ?: $resources[] = $this->urlPrefix;
         $resources[] = $this->getResource();
         !$this->urlPostfix ?: $resources[] = $this->urlPostfix;
@@ -210,10 +222,10 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     }
 
     public function resetResponseIndexes() {
-        $this->responseIndex = $this->connection()->getConfiguration('response_index');
+        $this->responseIndex = $this->getConnection()->getConfiguration('response_index');
 
         $this->responseArrayIndex = $this
-            ->connection()
+            ->getConnection()
             ->getConfiguration('response_array_index', $this->responseIndex);
     }
 
@@ -227,5 +239,81 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     public static function __callStatic($method, $parameters)
     {
         return (new static)->$method(...$parameters);
+    }
+
+    public static function on(string $connection = null) {
+        $instance = new static;
+
+        return $instance->setConnection($connection)->newQuery();
+    }
+
+    /**
+     * Create a new Eloquent Collection instance.
+     *
+     * @param  array  $models
+     * @return Collection
+     */
+    public function newCollection(array $models = [])
+    {
+        return new Collection($models);
+    }
+
+    /**
+     * Get a subset of the model's attributes.
+     *
+     * @param  array|mixed  $attributes
+     * @return array
+     */
+    public function only($attributes)
+    {
+        $results = [];
+
+        foreach (is_array($attributes) ? $attributes : func_get_args() as $attribute) {
+            $results[$attribute] = $this->getAttribute($attribute);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Sync the original attributes with the current.
+     *
+     * @return $this
+     */
+    public function syncOriginal()
+    {
+        $this->original = $this->getAttributes();
+
+        return $this;
+    }
+
+    /**
+     * Sync multiple original attribute with their current values.
+     *
+     * @param  array|string  $attributes
+     * @return $this
+     */
+    public function syncOriginalAttributes($attributes)
+    {
+        $attributes = is_array($attributes) ? $attributes : func_get_args();
+
+        $modelAttributes = $this->getAttributes();
+
+        foreach ($attributes as $attribute) {
+            $this->original[$attribute] = $modelAttributes[$attribute];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Sync a single original attribute with its current value.
+     *
+     * @param  string  $attribute
+     * @return $this
+     */
+    public function syncOriginalAttribute($attribute)
+    {
+        return $this->syncOriginalAttributes($attribute);
     }
 }

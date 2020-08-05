@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace Egretos\RestModel\Query;
 
 use Egretos\RestModel\Connection;
@@ -35,7 +37,7 @@ final class Builder
 
         if ($handled instanceof Model) {
             $this->model = $handled;
-            $this->connection = $this->model->connection();
+            $this->connection = $this->model->getConnection();
         }
 
         $this->resetRequest();
@@ -119,6 +121,12 @@ final class Builder
         return $this->connection->send($request);
     }
 
+    /**
+     * @param ResponseInterface $response
+     * @param bool $isArray
+     * @return Connection|Model|Model[]|Collection
+     * @throws JsonException
+     */
     public function normalizeResponse(ResponseInterface $response, $isArray = false) {
         $normalizer = $this->connection->getConfiguration('normalizer', null);
 
@@ -156,7 +164,7 @@ final class Builder
             $data = $data[$index];
         }
 
-        $models = collect();
+        $models = [];
 
         foreach ($data as $modelData) {
             /** @var Model $model */
@@ -167,10 +175,10 @@ final class Builder
             $model->fillHeaderAttributes( $response->getHeaders() );
             $model->exists = true;
 
-            $models->add($model);
+            $models[] = $model;
         }
 
-        return $models;
+        return $model->newCollection($models);
     }
 
     /**
@@ -198,7 +206,7 @@ final class Builder
         return $model;
     }
 
-    public function prepareModelParams($model = null) {
+    public function prepareModelSaving($model = null) {
         if (!$model) {
             $model = $this->model;
         }
@@ -213,6 +221,8 @@ final class Builder
         $model->wasRecentlyCreated = false;
 
         $this->addHeaders($model->getHeaderAttributes());
+
+        $model->syncOriginal();
 
         switch ($this->connection->getConfiguration('content-type')) {
             case 'www-form':
