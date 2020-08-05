@@ -48,10 +48,7 @@ trait ApiQueries
     public function show(string $id = null) {
         if ($this->model instanceof Model && $id) {
             $this->model->setAttribute($this->model->getRouteKeyName(), $id);
-        }
-
-        if (!$this->model->getRouteKey()) {
-            $this->model->setAttribute($this->model->getRouteKeyName(), null);
+            $this->resetRoute();
         }
 
         $this->request->method = Request::METHOD_GET;

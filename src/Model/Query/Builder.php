@@ -230,4 +230,17 @@ final class Builder
                 break;
         }
     }
+
+    public function prepareModelShowing($model = null) {
+        if (!$model) {
+            $model = $this->model;
+        }
+
+        if (!($model instanceof Model)) {
+            throw new LogicException('Model is not exists!');
+        }
+
+        /** Reset this value before every request */
+        $model->wasRecentlyCreated = false;
+    }
 }
