@@ -229,7 +229,7 @@ final class Builder
                 $this->setFormParams( $model->getSendAbleAttributes() );
                 break;
             case 'json':
-                $this->setJsonBody(  $model->getSendAbleAttributes() );
+                $this->setJsonBody( $model->getSendAbleAttributes() );
                 break;
         }
     }
