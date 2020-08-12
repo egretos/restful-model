@@ -228,6 +228,9 @@ final class Builder
             case 'www-form':
                 $this->setFormParams( $model->getSendAbleAttributes() );
                 break;
+            case 'json':
+                $this->setJsonBody(  $model->getSendAbleAttributes() );
+                break;
         }
     }
 
