@@ -142,6 +142,9 @@ final class Builder
             case 'json':
                 return $this->loadJsonResponse($this->model, $response);
                 break;
+            case 'body':
+                return $this->loadBodyResponse($this->model, $response);
+                break;
         }
 
         return $this->model;
@@ -201,6 +204,21 @@ final class Builder
         $model->lastResponse = $response;
         $model->forceFill($data);
         $model->fillHeaderAttributes( $response->getHeaders() );
+        $model->exists = true;
+
+        return $model;
+    }
+
+    /**
+     * @param Model $model
+     * @param ResponseInterface $response
+     * @return Model
+     */
+    public function loadBodyResponse(Model $model, ResponseInterface $response) {
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        $model->lastResponse = $response;
+        $model->setAttribute('body', $data);
         $model->exists = true;
 
         return $model;
