@@ -3,6 +3,7 @@
  * Configuration if REST`ful resources
  */
 return [
+    // Connection which will be used for mls by default
     'default_connection' => env('REST_CONNECTION', 'base_connection'),
 
     'connections' => [
@@ -20,7 +21,7 @@ return [
             ],
             'response_index' => 'data', // Array index which used for in main index response. Delete if not used
             'content-type' => 'www-form', // Data format for PUT and POST requests. Available: x-www-form-urlencoded, json
-            'normalizer' => 'json', // json, body
+            'normalizer' => 'json', // Response normalizer. json, body
             'paginator' => [
                 'page_key' => 'page',
                 'per_page_key' => 'per_page',

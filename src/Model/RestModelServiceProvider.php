@@ -7,6 +7,6 @@ use Illuminate\Support\ServiceProvider;
 class RestModelServiceProvider extends ServiceProvider
 {
     public function boot() {
-        $this->publishes([__DIR__ . '/config/' => config_path() . '/']);
+        $this->publishes([__DIR__ . '/../config/' => config_path() . '/']);
     }
 }
