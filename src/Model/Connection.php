@@ -65,6 +65,10 @@ final class Connection
      * @return string
      */
     public function getPrefix() {
+        if ($this->getConfiguration()) {
+            return  $this->getConfiguration()->get('prefix', null);
+        }
+
         return (string) $this->config->get('prefix', null);
     }
 

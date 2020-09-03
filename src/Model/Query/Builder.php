@@ -18,7 +18,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class Builder
 {
-    use ApiQueries, RequestModify;
+    use ApiQueries, RequestModify, BearerAuth;
 
     /** @var Connection */
     protected $connection;
@@ -32,15 +32,69 @@ final class Builder
     public function __construct($handled)
     {
         if ($handled instanceof Connection) {
-            $this->connection = $handled;
+            $this->setConnection( $handled );
         }
 
         if ($handled instanceof Model) {
-            $this->model = $handled;
-            $this->connection = $this->model->getConnection();
+            $this->setModel( $handled ) ;
+            $this->setConnection( $this->model->getConnection() );
         }
 
         $this->resetRequest();
+    }
+
+    /**
+     * @return Connection
+     */
+    public function getConnection(): Connection
+    {
+        return $this->connection;
+    }
+
+    /**
+     * @param Connection $connection
+     * @return $this
+     */
+    public function setConnection(Connection $connection)
+    {
+        $this->connection = $connection;
+        return $this;
+    }
+
+    /**
+     * @return Request
+     */
+    public function getRequest(): Request
+    {
+        return $this->request;
+    }
+
+    /**
+     * @param Request $request
+     * @return $this
+     */
+    public function setRequest(Request $request)
+    {
+        $this->request = $request;
+        return $this;
+    }
+
+    /**
+     * @return Connection|Model
+     */
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    /**
+     * @param $model
+     * @return $this
+     */
+    public function setModel(Model $model)
+    {
+        $this->model = $model;
+        return $this;
     }
 
     /**
@@ -48,7 +102,7 @@ final class Builder
      * @return $this
      */
     public function resetRequest(bool $resetData = true) {
-        $this->request = new Request();
+        $this->setRequest( new Request() );
 
         if ($resetData) {
             return $this
@@ -62,26 +116,32 @@ final class Builder
 
     public function resetDomain(string $domain = null) {
         if ($domain) {
-            $this->request->domain = $domain;
-        } elseif ($this->connection instanceof Connection) {
-            $this->request->domain = $this->connection->getDomain();
+            $this->getRequest()->domain = $domain;
+        } elseif ($this->getConnection() instanceof Connection) {
+            $this->getRequest()->domain = $this->connection->getDomain();
         }
         return $this;
     }
 
     public function resetRoute(string $route = null) {
         if ($route) {
-            $this->request->route = $route;
-        } elseif ($this->model instanceof Model) {
-            $this->request->route = $this->model->getRoute();
+            $this->setRoute($route);
+        } elseif ($this->getModel() instanceof Model) {
+            $this->setRoute( $this->model->getRoute() );
         }
 
         return $this;
     }
 
+    /**
+     * @param array|null $authData
+     * @param string $type
+     * @return $this
+     * @throws
+     */
     public function resetAuth(array $authData = null, $type = 'basic_auth') {
         if (!$authData) {
-            $authData = $this->connection->getConfiguration()->get('auth', null);
+            $authData = $this->getConnection()->getConfiguration()->get('auth', null);
             if (!$authData) {
                 /** Quite exit when no auth required */
                 return $this;
@@ -92,7 +152,17 @@ final class Builder
 
         switch ($type) {
             case 'basic_auth':
-                $this->request->auth = [$authData['login'], $authData['password']];
+                $this->getRequest()->setAuth([$authData['login'], $authData['password']]);
+                break;
+
+            case 'form_data':
+                $this->setFormParam( $authData['login_field'], $authData['login'] );
+                $this->setFormParam( $authData['password_field'], $authData['password'] );
+                break;
+
+            case 'bearer':
+                $this->touchToken();
+
                 break;
             default:
                 break;
@@ -125,7 +195,7 @@ final class Builder
      * @param ResponseInterface $response
      * @param bool $isArray
      * @return Connection|Model|Model[]|Collection
-     * @throws JsonException
+     * @throws
      */
     public function normalizeResponse(ResponseInterface $response, $isArray = false) {
         $normalizer = $this->connection->getConfiguration('normalizer', null);
@@ -141,10 +211,8 @@ final class Builder
         switch ($normalizer) {
             case 'json':
                 return $this->loadJsonResponse($this->model, $response);
-                break;
             case 'body':
                 return $this->loadBodyResponse($this->model, $response);
-                break;
         }
 
         return $this->model;
@@ -244,7 +312,7 @@ final class Builder
 
         switch ($this->connection->getConfiguration('content-type')) {
             case 'www-form':
-                $this->setFormParams( $model->getSendAbleAttributes() );
+                $this->addFormParams( $model->getSendAbleAttributes() );
                 break;
             case 'json':
                 $this->setJsonBody( $model->getSendAbleAttributes() );

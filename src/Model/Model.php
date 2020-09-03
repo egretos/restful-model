@@ -3,6 +3,7 @@
 namespace Egretos\RestModel;
 
 use Egretos\RestModel\Query\Builder;
+use Egretos\RestModel\Traits\RestModelFacade;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -22,6 +23,8 @@ use Psr\Http\Message\ResponseInterface;
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {
+    use RestModelFacade;
+
     /** @var mixed used for primary key definition */
     protected $primaryKey = 'id';
 
@@ -315,5 +318,17 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     public function syncOriginalAttribute($attribute)
     {
         return $this->syncOriginalAttributes($attribute);
+    }
+
+    /**
+     * @param array $attributes
+     * @return \Jenssegers\Model\Model|static
+     */
+    public static function make($attributes = []) {
+        return (new static())->newInstance($attributes);
+    }
+
+    public function where() {
+        // TODO
     }
 }

@@ -20,21 +20,30 @@ trait RequestModify
     }
 
     /**
+     * @param string $method
+     * @return $this
+     */
+    public function setMethod(string $method) {
+        $this->getRequest()->setMethod($method);
+        return $this;
+    }
+
+    /**
      * @param array $params
      * @return $this
      */
     public function setQueryParams (array $params) {
-        $this->request->query_params = $params;
+        $this->getRequest()->setQueryParams($params);
         return $this;
     }
 
     /**
      * @param string $key
-     * @param $param
+     * @param mixed $param
      * @return $this
      */
     public function addQueryParam(string $key, $param) {
-        $this->request->query_params[$key] = (string) $param;
+        $this->getRequest()->setQueryParam($key, (string) $param);
         return $this;
     }
 
@@ -54,8 +63,8 @@ trait RequestModify
      * @return $this
      */
     public function removeQueryParam(string $key) {
-        if (isset($this->request->query_params[$key])) {
-            unset($this->request->query_params[$key]);
+        if (isset($this->getRequest()->query_params[$key])) {
+            unset($this->getRequest()->query_params[$key]);
         }
 
         return $this;
@@ -66,7 +75,7 @@ trait RequestModify
      * @return $this
      */
     public function setHeaders(array $headers) {
-        $this->request->headers = $headers;
+        $this->getRequest()->setHeaders($headers);
         return $this;
     }
 
@@ -76,7 +85,7 @@ trait RequestModify
      * @return $this
      */
     public function addHeader(string $key, $header) {
-        $this->request->headers[$key] = (string) $header;
+        $this->getRequest()->headers[$key] = (string) $header;
         return $this;
     }
 
@@ -96,8 +105,8 @@ trait RequestModify
      * @return $this
      */
     public function removeHeader(string $key) {
-        if (isset($this->request->headers[$key])) {
-            unset($this->request->headers[$key]);
+        if (isset($this->getRequest()->headers[$key])) {
+            unset($this->getRequest()->headers[$key]);
         }
 
         return $this;
@@ -108,17 +117,7 @@ trait RequestModify
      * @return $this
      */
     public function setFormParams(array $params) {
-        $this->request->form_params = $params;
-        return $this;
-    }
-
-    /**
-     * @param string $key
-     * @param $param
-     * @return $this
-     */
-    public function addFormParam(string $key, $param) {
-        $this->request->form_params[$key] = (string) $param;
+        $this->getRequest()->setFormParams($params);
         return $this;
     }
 
@@ -127,9 +126,30 @@ trait RequestModify
      * @return $this
      */
     public function addFormParams(array $params) {
-        foreach ($params as $key => $param) {
-            $this->addFormParam($key, $param);
-        }
+        $this
+            ->getRequest()
+            ->setFormParams( array_merge($params, $this->getRequest()->getFormParams()) );
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param string $param
+     * @return $this
+     */
+    public function setFormParam(string $key, string $param) {
+        $this->getRequest()->setFormParam($key, $param);
+        return $this;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $param
+     * @return $this
+     */
+    public function addFormParam(string $key, string $param) {
+        $this->getRequest()->setFormParam($key, $param);
         return $this;
     }
 
@@ -138,8 +158,8 @@ trait RequestModify
      * @return $this
      */
     public function removeFormParam(string $key) {
-        if (isset($this->request->form_params[$key])) {
-            unset($this->request->form_params[$key]);
+        if (isset($this->getRequest()->form_params[$key])) {
+            unset($this->getRequest()->form_params[$key]);
         }
 
         return $this;
@@ -150,7 +170,7 @@ trait RequestModify
      * @return $this
      */
     public function setJsonBody(array $data) {
-        $this->request->json = $data;
+        $this->getRequest()->setJson($data);
         return $this;
     }
 
@@ -159,7 +179,21 @@ trait RequestModify
      * @return $this
      */
     public function setRawBody(string $body) {
-        $this->request->body = $body;
+        $this->getRequest()->setBody($body);
+        return $this;
+    }
+
+    /**
+     * @param string $domain
+     * @return $this
+     */
+    public function setDomain(string $domain) {
+        $this->getRequest()->setDomain($domain);
+        return $this;
+    }
+
+    public function setRoute(string $route) {
+        $this->getRequest()->setRoute($route);
         return $this;
     }
 }

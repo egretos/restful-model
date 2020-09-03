@@ -14,8 +14,17 @@ return [
         'base_connection' => [
             'domain' => env('REST_DOMAIN', 'example.com'),
             'prefix' => env('REST_PREFIX', 'api/1.0'),
-            'auth' => [ // delete this if you are will not use authorization at all
+            /*'auth' => [ // delete this if you are will not use authorization at all
                 'type' => 'basic_auth',
+                'login' => env('REST_AUTH_LOGIN', 'example.com'),
+                'password' => env('REST_AUTH_LOGIN', 'put_password_here'),
+            ],*/
+            'auth' => [
+                'type' => 'bearer',
+                'cache_key' => 'base_connection_bearer_token', // Not required, can be generated automatically
+                'token_route' => env('REST_AUTH_TOKEN_ROUTE', 'login'), // ULR for update a bearer token
+                'token_method' => 'POST', // Method for touching token route
+                'token_index' => 'token',
                 'login' => env('REST_AUTH_LOGIN', 'example.com'),
                 'password' => env('REST_AUTH_LOGIN', 'put_password_here'),
             ],

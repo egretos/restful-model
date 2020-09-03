@@ -8,7 +8,6 @@ use Egretos\RestModel\Connection;
 use Egretos\RestModel\Model;
 use Egretos\RestModel\Request;
 use Illuminate\Support\Collection;
-use JsonException;
 
 /**
  * Trait ApiQueries
@@ -21,7 +20,6 @@ trait ApiQueries
     /**
      * @param Model|null $model
      * @return Connection|Model|Model[]|Collection
-     * @throws JsonException
      */
     public function index(Model $model = null) {
         if ($model) {
@@ -43,7 +41,6 @@ trait ApiQueries
     /**
      * @param string|null $id
      * @return Connection|Model|Model[]|Collection
-     * @throws JsonException
      */
     public function show(string $id = null) {
         if ($this->model instanceof Model && $id) {
@@ -61,11 +58,10 @@ trait ApiQueries
     /**
      * @param Model|null $model
      * @return Connection|Model|Model[]|Collection
-     * @throws JsonException
      */
     public function create(Model $model = null) {
         if ($model) {
-            $this->model = $model;
+            $this->setModel( $model );
             $this->connection = $this->model->getConnection();
         }
 
@@ -73,7 +69,7 @@ trait ApiQueries
             $this->model->setAttribute($this->model->getRouteKeyName(), null);
         }
 
-        $this->request->method = Request::METHOD_POST;
+        $this->setMethod( Request::METHOD_POST );
         $this->prepareModelSaving($model);
 
         $response = $this->send();
@@ -85,7 +81,6 @@ trait ApiQueries
     /**
      * @param Model|null $model
      * @return bool|Connection|Model|Model[]|Collection
-     * @throws JsonException
      */
     public function update(Model $model = null) {
         if ($model) {
@@ -108,7 +103,6 @@ trait ApiQueries
     /**
      * @param Model|null $model
      * @return Connection|Model|Model[]|Collection
-     * @throws JsonException
      */
     public function delete(Model $model = null) {
         if ($model) {
