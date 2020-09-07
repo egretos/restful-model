@@ -148,8 +148,19 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return new Connection($this->connection);
     }
 
+    /**
+     * @return bool|float|\Illuminate\Support\Collection|int|mixed|string|null
+     */
     public function getRouteKey() {
         return $this->getAttribute($this->getRouteKeyName());
+    }
+
+    /**
+     * @param string $id
+     * @return Model
+     */
+    public function setRouteKey(string $id) {
+        return $this->setAttribute($this->getRouteKeyName(), $id);
     }
 
     public function getRouteKeyName() {
@@ -235,8 +246,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * Handle dynamic static method calls into the method.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param $method
+     * @param $parameters
      * @return mixed
      */
     public static function __callStatic($method, $parameters)
@@ -267,7 +278,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  array|mixed  $attributes
      * @return array
      */
-    public function only($attributes)
+    public function only(array $attributes)
     {
         $results = [];
 
@@ -315,7 +326,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  string  $attribute
      * @return $this
      */
-    public function syncOriginalAttribute($attribute)
+    public function syncOriginalAttribute(string $attribute)
     {
         return $this->syncOriginalAttributes($attribute);
     }
@@ -326,9 +337,5 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      */
     public static function make($attributes = []) {
         return (new static())->newInstance($attributes);
-    }
-
-    public function where() {
-        // TODO
     }
 }
