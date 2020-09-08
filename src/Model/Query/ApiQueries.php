@@ -17,6 +17,8 @@ use Illuminate\Support\Collection;
  */
 trait ApiQueries
 {
+    protected $onDelete;
+
     /**
      * @param Model|null $model
      * @return Connection|Model|Model[]|Collection
@@ -78,6 +80,11 @@ trait ApiQueries
         return $this->normalizeResponse($response);
     }
 
+    public function forceCreate($attributes) {
+        $this->model->forceFill($attributes);
+        return $this->create();
+    }
+
     /**
      * @param Model|null $model
      * @return bool|Connection|Model|Model[]|Collection
@@ -114,6 +121,15 @@ trait ApiQueries
 
         $response = $this->send();
 
+        if (isset($this->onDelete)) {
+            return call_user_func($this->onDelete, $this);
+        }
+
         return $this->normalizeResponse($response);
+    }
+
+    public function onDelete(Closure $callback)
+    {
+        $this->onDelete = $callback;
     }
 }

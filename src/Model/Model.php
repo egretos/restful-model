@@ -167,6 +167,10 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return $this->getPrimaryKey();
     }
 
+    public function getKeyName() {
+        return $this->getRouteKeyName();
+    }
+
     public function resolveRouteBinding($value, $field = null) {
         $this->setAttribute($this->getRouteKeyName(), $value);
         return $this->newQuery()->show($value);

@@ -332,4 +332,14 @@ final class Builder
         /** Reset this value before every request */
         $model->wasRecentlyCreated = false;
     }
+
+    /**
+     * Get the default key name of the table.
+     *
+     * @return string
+     */
+    protected function defaultKeyName()
+    {
+        return $this->getModel()->getRouteKeyName();
+    }
 }

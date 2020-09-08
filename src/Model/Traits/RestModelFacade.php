@@ -2,6 +2,7 @@
 
 namespace Egretos\RestModel\Traits;
 
+use Closure;
 use Egretos\RestModel\Connection;
 use Egretos\RestModel\Model;
 use Egretos\RestModel\Query\Builder;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 
 /**
- * Trait Facade
+ * Facade Trait
  * @package Egretos\RestModel\Traits
  *
  * @mixin Model
@@ -64,7 +65,7 @@ trait RestModelFacade
         return $models;
     }
 
-    public static function findOrFail( $id ) {
+    public static function findOrFail($id) {
         if ($model = static::find( $id ) ) {
             return $model;
         } else {
@@ -80,5 +81,65 @@ trait RestModelFacade
         } else {
             return static::make()->newInstance();
         }
+    }
+
+    public function findOr(string $id, Closure $callback) {
+        if ($model = static::find( $id ) ) {
+            return $model;
+        } else {
+            return $callback();
+        }
+    }
+
+    /**
+     * @param array $params
+     * @return Connection|Model|Model[]|Collection
+     */
+    public static function get(array $params) {
+        return static::query()
+            ->setQueryParams($params)
+            ->index();
+    }
+
+    /**
+     * @param array $attributes
+     * @return Connection|Model|Model[]|Collection
+     */
+    public function create(array $attributes = []) {
+        $this->fill($attributes);
+        return $this->newQuery()->create();
+    }
+
+    public function forceCreate(array $attributes) {
+        $this->forceFill($attributes);
+        return $this->newQuery()->create();
+    }
+
+    public function update(array $values = []) {
+        $this->fill($values);
+        return $this->newQuery()->update();
+    }
+
+    public function forceUpdate(array $values) {
+        $this->fill($values);
+        return $this->newQuery()->update();
+    }
+
+    public function save() {
+        if ($this->exists) {
+            return $this->create();
+        } else {
+            return $this->update();
+        }
+    }
+
+    public function increment(string $column, $amount = 1, array $extra = []) {
+        $this->$column += $amount;
+        return $this->forceUpdate($extra);
+    }
+
+    public function decrement(string $column, $amount = 1, array $extra = []) {
+        $this->$column -= $amount;
+        return $this->forceUpdate($extra);
     }
 }
