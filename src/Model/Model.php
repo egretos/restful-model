@@ -227,7 +227,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param array $headers
      * @return $this
      */
-    public function fillHeaderAttributes(array $headers) {
+    public function fillFromResponseHeader(array $headers) {
         foreach ($this->headerAttributes as $headerAttribute) {
 
             /** GuzzleHttp put response headers to array in array, so we use [0] pointer */
@@ -239,12 +239,19 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return $this;
     }
 
+    /**
+     * Resets indexes of JSON responses from configuration file
+     *
+     * @return $this
+     */
     public function resetResponseIndexes() {
         $this->responseIndex = $this->getConnection()->getConfiguration('response_index');
 
         $this->responseArrayIndex = $this
             ->getConnection()
             ->getConfiguration('response_array_index', $this->responseIndex);
+
+        return $this;
     }
 
     /**

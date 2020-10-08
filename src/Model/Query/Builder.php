@@ -243,7 +243,7 @@ final class Builder
             $model->lastRequest = $this->request;
             $model->lastResponse = $response;
             $model->forceFill($modelData);
-            $model->fillHeaderAttributes( $response->getHeaders() );
+            $model->fillFromResponseHeader( $response->getHeaders() );
             $model->exists = true;
 
             $models[] = $model;
@@ -271,7 +271,7 @@ final class Builder
 
         $model->lastResponse = $response;
         $model->forceFill($data);
-        $model->fillHeaderAttributes( $response->getHeaders() );
+        $model->fillFromResponseHeader( $response->getHeaders() );
         $model->exists = true;
 
         return $model;

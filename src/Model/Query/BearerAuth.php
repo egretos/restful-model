@@ -13,6 +13,9 @@ use LogicException;
  */
 trait BearerAuth
 {
+    /**
+     * @throws
+     */
     public function touchToken() {
         $cacheKey = $this->getConnection()
             ->getConfiguration('auth.cache_key', $this->getConnection()->connection.'bearer_token');
@@ -29,7 +32,7 @@ trait BearerAuth
             if ($tokenIndex = $this->getConnection()->getConfiguration('auth.token_index', null)) {
                 $tokenString = $token->get($tokenIndex);
             } else {
-                $tokenString = $token->get('body', null);
+                $tokenString = $token->get(['body']);
             }
 
             if ($tokenString) {
