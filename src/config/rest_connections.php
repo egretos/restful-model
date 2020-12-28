@@ -1,9 +1,9 @@
 <?php
 /**
- * Configuration if REST`ful resources
+ * Configuration of REST`ful resources
  */
 return [
-    // Connection which will be used for mls by default
+    // Connection which will be used for models by default
     'default_connection' => env('REST_CONNECTION', 'base_connection'),
 
     'connections' => [

@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpUnused */
+
 namespace Egretos\RestModel;
 
 use GuzzleHttp\RequestOptions;
@@ -51,7 +53,7 @@ final class Request
      * @param mixed $domain
      * @return Request
      */
-    public function setDomain($domain)
+    public function setDomain($domain): Request
     {
         $this->domain = $domain;
         return $this;
@@ -69,7 +71,7 @@ final class Request
      * @param mixed $route
      * @return Request
      */
-    public function setRoute($route)
+    public function setRoute($route): Request
     {
         $this->route = $route;
         return $this;
@@ -127,7 +129,7 @@ final class Request
      * @param mixed $form_params
      * @return Request
      */
-    public function setFormParams($form_params)
+    public function setFormParams($form_params): Request
     {
         $this->form_params = $form_params;
         return $this;
@@ -145,7 +147,7 @@ final class Request
      * @param mixed $auth
      * @return Request
      */
-    public function setAuth($auth)
+    public function setAuth($auth): Request
     {
         $this->auth = $auth;
         return $this;
@@ -163,7 +165,7 @@ final class Request
      * @param mixed $json
      * @return Request
      */
-    public function setJson($json)
+    public function setJson($json): Request
     {
         $this->json = $json;
         return $this;
@@ -181,7 +183,7 @@ final class Request
      * @param mixed $cookies
      * @return Request
      */
-    public function setCookies($cookies)
+    public function setCookies($cookies): Request
     {
         $this->cookies = $cookies;
         return $this;
@@ -199,7 +201,7 @@ final class Request
      * @param mixed $query_params
      * @return Request
      */
-    public function setQueryParams($query_params)
+    public function setQueryParams($query_params): Request
     {
         $this->query_params = $query_params;
         return $this;
@@ -210,7 +212,7 @@ final class Request
      * @param $query_params
      * @return $this
      */
-    public function setQueryParam($key, $query_params)
+    public function setQueryParam($key, $query_params): Request
     {
         $this->query_params[$key] = $query_params;
         return $this;
@@ -228,7 +230,7 @@ final class Request
      * @param mixed $multipart
      * @return Request
      */
-    public function setMultipart($multipart)
+    public function setMultipart($multipart): Request
     {
         $this->multipart = $multipart;
         return $this;
@@ -246,7 +248,7 @@ final class Request
      * @param mixed $body
      * @return Request
      */
-    public function setBody($body)
+    public function setBody($body): Request
     {
         $this->body = $body;
         return $this;
@@ -254,7 +256,8 @@ final class Request
 
 
 
-    public function toGuzzleOptions() {
+    public function toGuzzleOptions(): array
+    {
         $options = [];
 
         if ($this->auth) {

@@ -17,12 +17,17 @@ use Illuminate\Support\Collection;
  */
 trait RestModelFacade
 {
+    public static function all() {
+        return static::query()->index();
+    }
+
     /**
      * @param $param
      * @param string|null $value
      * @return Builder
      */
-    public static function where($param, string $value = null) {
+    public static function where($param, string $value = null): Builder
+    {
         if (is_array($param)) {
             return static::query()->addFormParams($param);
         } else {
@@ -34,7 +39,8 @@ trait RestModelFacade
      * @param string $id
      * @return Builder
      */
-    public static function whereKey(string $id) {
+    public static function whereKey(string $id): Builder
+    {
         return static::where(static::make()->getRouteKeyName(), $id);
     }
 
@@ -55,17 +61,22 @@ trait RestModelFacade
      * @param array $ids
      * @return Collection
      */
-    public static function findMany(array $ids) {
+    public static function findMany(array $ids): Collection
+    {
         $models = collect();
 
         foreach ($ids as $id) {
-            $models->push( static::find($id) );
+            $models->push( static::find( $id ) );
         }
 
         return $models;
     }
 
-    public static function findOrFail($id) {
+    /**
+     * @param string $id
+     * @return Connection|Model|Model[]|Collection
+     */
+    public static function findOrFail( string $id ) {
         if ($model = static::find( $id ) ) {
             return $model;
         } else {
@@ -75,14 +86,24 @@ trait RestModelFacade
         }
     }
 
-    public static function findOrNew( $id ) {
+    /**
+     * @param string $id
+     * @param array $attributes
+     * @return Connection|Model|Model[]|RestModelFacade|Collection|\Jenssegers\Model\Model
+     */
+    public static function findOrNew( string $id, array $attributes = []) {
         if ($model = static::find( $id ) ) {
             return $model;
         } else {
-            return static::make()->newInstance();
+            return static::make()->newInstance($attributes);
         }
     }
 
+    /**
+     * @param string $id
+     * @param Closure $callback
+     * @return Connection|Model|Model[]|Collection|mixed
+     */
     public function findOr(string $id, Closure $callback) {
         if ($model = static::find( $id ) ) {
             return $model;
@@ -106,23 +127,19 @@ trait RestModelFacade
      * @return Connection|Model|Model[]|Collection
      */
     public function create(array $attributes = []) {
-        $this->fill($attributes);
-        return $this->newQuery()->create();
+        return $this->fill($attributes)->newQuery()->create();
     }
 
     public function forceCreate(array $attributes) {
-        $this->forceFill($attributes);
-        return $this->newQuery()->create();
+        return $this->forceFill($attributes)->newQuery()->create();
     }
 
     public function update(array $values = []) {
-        $this->fill($values);
-        return $this->newQuery()->update();
+        return $this->fill($values)->newQuery()->update();
     }
 
     public function forceUpdate(array $values) {
-        $this->fill($values);
-        return $this->newQuery()->update();
+        return $this->forceFill($values)->newQuery()->update();
     }
 
     public function save() {

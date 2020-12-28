@@ -18,7 +18,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class Builder
 {
-    use ApiQueries, RequestModify, BearerAuth;
+    use ApiQueries, RequestModify, BearerAuth, RestBuilderFacade;
 
     /** @var Connection */
     protected $connection;
@@ -55,7 +55,7 @@ final class Builder
      * @param Connection $connection
      * @return $this
      */
-    public function setConnection(Connection $connection)
+    public function setConnection(Connection $connection): Builder
     {
         $this->connection = $connection;
         return $this;
@@ -73,7 +73,7 @@ final class Builder
      * @param Request $request
      * @return $this
      */
-    public function setRequest(Request $request)
+    public function setRequest(Request $request): Builder
     {
         $this->request = $request;
         return $this;
@@ -91,7 +91,7 @@ final class Builder
      * @param $model
      * @return $this
      */
-    public function setModel(Model $model)
+    public function setModel(Model $model): Builder
     {
         $this->model = $model;
         return $this;
@@ -101,7 +101,8 @@ final class Builder
      * @param bool $resetData
      * @return $this
      */
-    public function resetRequest(bool $resetData = true) {
+    public function resetRequest(bool $resetData = true): Builder
+    {
         $this->setRequest( new Request() );
 
         if ($resetData) {
@@ -114,7 +115,8 @@ final class Builder
         return $this;
     }
 
-    public function resetDomain(string $domain = null) {
+    public function resetDomain(string $domain = null): Builder
+    {
         if ($domain) {
             $this->getRequest()->domain = $domain;
         } elseif ($this->getConnection() instanceof Connection) {
@@ -123,7 +125,8 @@ final class Builder
         return $this;
     }
 
-    public function resetRoute(string $route = null) {
+    public function resetRoute(string $route = null): Builder
+    {
         if ($route) {
             $this->setRoute($route);
         } elseif ($this->getModel() instanceof Model) {
@@ -139,9 +142,10 @@ final class Builder
      * @return $this
      * @throws
      */
-    public function resetAuth(array $authData = null, $type = 'basic_auth') {
+    public function resetAuth(array $authData = null, $type = 'basic_auth'): Builder
+    {
         if (!$authData) {
-            $authData = $this->getConnection()->getConfiguration()->get('auth', null);
+            $authData = $this->getConnection()->getConfiguration()->get('auth');
             if (!$authData) {
                 /** Quite exit when no auth required */
                 return $this;
@@ -171,7 +175,8 @@ final class Builder
         return $this;
     }
 
-    public function send(Request $request = null) {
+    public function send(Request $request = null): ResponseInterface
+    {
         if (!$request) {
             $request = $this->request;
         }
@@ -198,7 +203,7 @@ final class Builder
      * @throws
      */
     public function normalizeResponse(ResponseInterface $response, $isArray = false) {
-        $normalizer = $this->connection->getConfiguration('normalizer', null);
+        $normalizer = $this->connection->getConfiguration('normalizer');
 
         if (!$normalizer) {
             $normalizer = 'json';
@@ -239,11 +244,12 @@ final class Builder
 
         foreach ($data as $modelData) {
             /** @var Model $model */
-            $model = $model->newInstance();
+            $model = $model
+                ->newInstance()
+                ->forceFill( $modelData )
+                ->fillFromResponseHeader( $response->getHeaders() );
             $model->lastRequest = $this->request;
             $model->lastResponse = $response;
-            $model->forceFill($modelData);
-            $model->fillFromResponseHeader( $response->getHeaders() );
             $model->exists = true;
 
             $models[] = $model;
@@ -258,7 +264,8 @@ final class Builder
      * @return Model
      * @throws JsonException
      */
-    public function loadJsonResponse(Model $model, ResponseInterface $response) {
+    public function loadJsonResponse(Model $model, ResponseInterface $response): Model
+    {
         $data = json_decode($response->getBody()->getContents(), true);
 
         if (!is_array($data)) {
@@ -282,7 +289,8 @@ final class Builder
      * @param ResponseInterface $response
      * @return Model
      */
-    public function loadBodyResponse(Model $model, ResponseInterface $response) {
+    public function loadBodyResponse(Model $model, ResponseInterface $response): Model
+    {
         $data = json_decode($response->getBody()->getContents(), true);
 
         $model->lastResponse = $response;
@@ -338,7 +346,7 @@ final class Builder
      *
      * @return string
      */
-    protected function defaultKeyName()
+    protected function defaultKeyName(): string
     {
         return $this->getModel()->getRouteKeyName();
     }

@@ -3,6 +3,7 @@
 namespace Egretos\RestModel\Query;
 
 use Closure;
+use Egretos\RestModel\Connection;
 use Egretos\RestModel\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
@@ -23,7 +24,8 @@ trait RestBuilderFacade
         return $this->addQueryParam($column, $value);
     }
 
-    public function addArrayOfWheres($column) {
+    public function addArrayOfWheres($column): RestBuilderFacade
+    {
         foreach ($column as $key => $value) {
             if (is_numeric($key) && is_array($value)) {
                 $this->addArrayOfWheres($value);
@@ -37,6 +39,7 @@ trait RestBuilderFacade
 
     /**
      * @return Model|mixed
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function first() {
         $response = $this->send();
@@ -48,6 +51,7 @@ trait RestBuilderFacade
 
     /**
      * @return Model|mixed
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function firstOrFail() {
         if (!$model = $this->first()) {
@@ -91,9 +95,10 @@ trait RestBuilderFacade
 
     /**
      * @param array $attributes
-     * @return \Jenssegers\Model\Model|null
+     * @return Connection|Model|null
      */
-    public function newModelInstance($attributes = []) {
+    public function newModelInstance($attributes = [])
+    {
         if ($this->getModel() instanceof Model) {
             return $this->getModel()->newInstance($attributes);
         } else {

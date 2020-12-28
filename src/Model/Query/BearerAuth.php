@@ -29,7 +29,7 @@ trait BearerAuth
             $this->setModel( Token::make() );
             $token = $this->normalizeResponse($response);
 
-            if ($tokenIndex = $this->getConnection()->getConfiguration('auth.token_index', null)) {
+            if ($tokenIndex = $this->getConnection()->getConfiguration('auth.token_index')) {
                 $tokenString = $token->get($tokenIndex);
             } else {
                 $tokenString = $token->get(['body']);

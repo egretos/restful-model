@@ -110,7 +110,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * Get name of usable endpoint
      * @return string|null
      */
-    public function getResource()
+    public function getResource(): ?string
     {
         return $this->resource ?? Str::snake(Str::pluralStudly(class_basename($this)));
     }
@@ -119,7 +119,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param string $connection
      * @return static
      */
-    public function setConnection(string $connection)
+    public function setConnection(string $connection): Model
     {
         $this->connection = $connection;
         return $this;
@@ -128,7 +128,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * @return mixed
      */
-    public function getPrimaryKey()
+    public function getPrimaryKey(): string
     {
         return $this->primaryKey;
     }
@@ -136,15 +136,18 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * @return Builder
      */
-    public function newQuery() {
+    public function newQuery(): Builder
+    {
         return new Builder($this);
     }
 
-    public static function query() {
+    public static function query(): Builder
+    {
         return (new static)->newQuery();
     }
 
-    public function getConnection() {
+    public function getConnection(): Connection
+    {
         return new Connection($this->connection);
     }
 
@@ -159,15 +162,18 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param string $id
      * @return Model
      */
-    public function setRouteKey(string $id) {
+    public function setRouteKey(string $id): Model
+    {
         return $this->setAttribute($this->getRouteKeyName(), $id);
     }
 
-    public function getRouteKeyName() {
+    public function getRouteKeyName(): string
+    {
         return $this->getPrimaryKey();
     }
 
-    public function getKeyName() {
+    public function getKeyName(): string
+    {
         return $this->getRouteKeyName();
     }
 
@@ -176,11 +182,14 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return $this->newQuery()->show($value);
     }
 
-    public function resolveChildRouteBinding($childType, $value, $field) {
+    public function resolveChildRouteBinding($childType, $value, $field): ?\Illuminate\Database\Eloquent\Model
+    {
         // TODO implement this when it will be used in nested query route
+        return null;
     }
 
-    public function getRoute() {
+    public function getRoute(): string
+    {
         $resources = [];
 
         !$this->getConnection()->getPrefix() ?: $resources[] = $this->getConnection()->getPrefix();
@@ -192,7 +201,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return implode('/', $resources);
     }
 
-    public function getSendAbleAttributes() {
+    public function getSendAbleAttributes(): array
+    {
         if ($this->sendAbleAttributes == ['*']) {
             return $this->getAttributes();
         }
@@ -211,7 +221,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     /**
      * @return array
      */
-    public function getHeaderAttributes() {
+    public function getHeaderAttributes(): array
+    {
         $attributes = [];
 
         foreach ($this->headerAttributes as $headerAttribute) {
@@ -227,7 +238,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param array $headers
      * @return $this
      */
-    public function fillFromResponseHeader(array $headers) {
+    public function fillFromResponseHeader(array $headers): Model
+    {
         foreach ($this->headerAttributes as $headerAttribute) {
 
             /** GuzzleHttp put response headers to array in array, so we use [0] pointer */
@@ -244,7 +256,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      *
      * @return $this
      */
-    public function resetResponseIndexes() {
+    public function resetResponseIndexes(): Model
+    {
         $this->responseIndex = $this->getConnection()->getConfiguration('response_index');
 
         $this->responseArrayIndex = $this
@@ -266,7 +279,8 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
         return (new static)->$method(...$parameters);
     }
 
-    public static function on(string $connection = null) {
+    public static function on(string $connection = null): Builder
+    {
         $instance = new static;
 
         return $instance->setConnection($connection)->newQuery();
@@ -278,7 +292,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  array  $models
      * @return Collection
      */
-    public function newCollection(array $models = [])
+    public function newCollection(array $models = []): Collection
     {
         return new Collection($models);
     }
@@ -289,7 +303,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  array|mixed  $attributes
      * @return array
      */
-    public function only(array $attributes)
+    public function only(array $attributes): array
     {
         $results = [];
 
@@ -305,7 +319,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      *
      * @return $this
      */
-    public function syncOriginal()
+    public function syncOriginal(): Model
     {
         $this->original = $this->getAttributes();
 
@@ -318,7 +332,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  array|string  $attributes
      * @return $this
      */
-    public function syncOriginalAttributes($attributes)
+    public function syncOriginalAttributes($attributes): Model
     {
         $attributes = is_array($attributes) ? $attributes : func_get_args();
 
@@ -337,7 +351,7 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      * @param  string  $attribute
      * @return $this
      */
-    public function syncOriginalAttribute(string $attribute)
+    public function syncOriginalAttribute(string $attribute): Model
     {
         return $this->syncOriginalAttributes($attribute);
     }
