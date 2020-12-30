@@ -65,12 +65,14 @@ The model will use the resource `posts`,
 which is the name of the model in plural nouns.
 You can use your own resource name when you need it by using `$model->resource`:
 
+[`http://jsonplaceholder.typicode.com/comments`](http://jsonplaceholder.typicode.com/posts)
+
 ````php
 use Egretos\RestModel\Model;
 
-class News extends Model
+class Reviews extends Model
 {
-    protected $resource = 'articles';
+    protected $resource = 'comments';
 }
 ````
 
@@ -78,6 +80,28 @@ class News extends Model
 
 When your model using not default connection,
 just add your second connection to configuration and tell it to model:
+
+`rest_connections.php`:
+````php
+<?php
+return [
+    // Connection which will be used for models by default
+    'default_connection' => env('REST_CONNECTION', 'base_connection'),
+
+    'connections' => [
+        'base_connection' => [
+            'domain' => env('REST_DOMAIN', 'http://jsonplaceholder.typicode.com'),
+            'content-type' => 'www-form', // Data format for PUT and POST requests. Available: www-form, x-www-form-urlencoded, json
+        ],
+        
+        'payment_api' => [
+            'domain' => env('PAYMENT_DOMAIN', 'http://paypaypay.pay.pay'),
+        ],
+    ],
+];
+````
+
+Model class for `http://paypaypay.pay.pay/payment`
 
 ````php
 use Egretos\RestModel\Model;
@@ -98,45 +122,53 @@ Here we get all posts from API and print the title of the first post in response
 Link is `GET http://jsonplaceholder.typicode.com/posts`.
 
 ````php
-use App\Models\Post;
-
+/** GET http://jsonplaceholder.typicode.com/posts */
 foreach (Post::all() as $post) {
     echo $post->title; // sunt aut facere repellat...
 }
 ````
 
+### Retrieving single models
 
+In case when you need to get a one model, next methods should help you:
 ````php
 
-/**
- * GET http://jsonplaceholder.typicode.com/posts/10
- * @var $post Post
- */
-$post = Post::query()->find(10);
+/** GET http://jsonplaceholder.typicode.com/posts/1 */
+Post::find(1);
 
-$post->title = 'new post title which needs to be saved';
+/** GET http://jsonplaceholder.typicode.com/posts?title=Lorem */
+Post::where('title', 'Lorem')->first();
 
-/**
- * PUT http://jsonplaceholder.typicode.com/posts/10
- * @var $post Post
- */
-$post->query()->update();
-
-$newPost = Post::make([
-    'title' => 'fake post title',
-    'body' => 'fake post body',
-]);
-
-/**
- * POST http://jsonplaceholder.typicode.com/posts
- * @var $post Post
- */
-$newPost->query()->create();
-
-/**
- * Delete http://jsonplaceholder.typicode.com/posts/{id_of_newPost}
- * @var $post Post
- */
-$newPost->query()->delete();
 ````
 
+### HTTP query builder
+
+The `all` method will do a `GET` request to `/posts` resource and then map all results into `Post` objects.
+In case when we need to modify a request use query builder such like Laravel Eloquent query builder.
+
+
+````php
+use Egretos\RestModel\Request;
+
+    $posts = Post::query()
+        ->addHeader('Content-Language', 'en') // Puts new header to request
+        ->setMethod(Request::METHOD_OPTIONS) // Set OTIONS request method
+        ->where('title', 'Lorem') // Sets query `title` param to `Lorem`
+        ->send(); // Gets raw response
+````
+
+## Save model
+
+## create and update
+
+## first or find or
+
+## Work with model attributes (Mass assignment + JSON)
+
+## Last request and last response
+
+## deleting models (+ query)
+
+## Replicating models
+
+## Configuration

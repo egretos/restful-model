@@ -3,7 +3,9 @@
 namespace Egretos\RestModel;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use Psr\Http\Message\ResponseInterface;
 
 final class Connection
 {
@@ -20,7 +22,8 @@ final class Connection
         $this->loadConfig();
     }
 
-    public function loadConfig() {
+    public function loadConfig(): self
+    {
         $this->config = collect( config('rest_connections') );
 
         return $this;
@@ -37,8 +40,11 @@ final class Connection
      * @param string|null $param
      * @param null $default
      * @return Collection|mixed
+     *
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function getConfiguration(string $param = null, $default = null) {
+    public function getConfiguration(string $param = null, $default = null)
+    {
         $connection = $this->connection;
 
         if (!$connection) {
@@ -64,15 +70,22 @@ final class Connection
     /**
      * @return string
      */
-    public function getPrefix() {
+    public function getPrefix(): string
+    {
         if ($this->getConfiguration()) {
-            return  $this->getConfiguration()->get('prefix', null);
+            return  $this->getConfiguration()->get('prefix');
         }
 
-        return (string) $this->config->get('prefix', null);
+        return (string) $this->config->get('prefix');
     }
 
-    public function send(Request $request) {
+    /**
+     * @param Request $request
+     * @return ResponseInterface
+     * @throws GuzzleException
+     */
+    public function send(Request $request): ResponseInterface
+    {
         $client = new Client(['base_uri' => $this->getDomain()]);
 
         return $client->request($request->method, $request->route, $request->toGuzzleOptions());

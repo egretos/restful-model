@@ -20,6 +20,10 @@ use Psr\Http\Message\ResponseInterface;
  * TODO Model Facades (from ide-helper)
  * TODO add scopes
  * TODO add casts attributes
+ * TODO load files
+ *
+ * TODO save quietly
+ * TODO is() method
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {

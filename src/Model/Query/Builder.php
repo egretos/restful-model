@@ -166,7 +166,6 @@ final class Builder
 
             case 'bearer':
                 $this->touchToken();
-
                 break;
             default:
                 break;
