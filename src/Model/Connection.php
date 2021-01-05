@@ -70,7 +70,7 @@ final class Connection
     /**
      * @return string
      */
-    public function getPrefix(): string
+    public function getPrefix(): ?string
     {
         if ($this->getConfiguration()) {
             return  $this->getConfiguration()->get('prefix');

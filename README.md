@@ -152,7 +152,7 @@ use Egretos\RestModel\Request;
 
     $posts = Post::query()
         ->addHeader('Content-Language', 'en') // Puts new header to request
-        ->setMethod(Request::METHOD_OPTIONS) // Set OTIONS request method
+        ->setMethod(Request::METHOD_OPTIONS) // Set OPTIONS request method
         ->where('title', 'Lorem') // Sets query `title` param to `Lorem`
         ->send(); // Gets raw response
 ````
