@@ -48,7 +48,7 @@ trait ApiQueries
             $this->resetRoute();
         }
 
-        $this-$this->setMethod(Request::METHOD_GET);
+        $this->setMethod(Request::METHOD_GET);
 
         $response = $this->send();
 
