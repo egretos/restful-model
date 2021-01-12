@@ -4,8 +4,10 @@ namespace Egretos\RestModel;
 
 use Egretos\RestModel\Query\Builder;
 use Egretos\RestModel\Traits\RestModelFacade;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Database\Eloquent\Collection;
+use Egretos\RestModel\Traits\HasEvents;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 
@@ -13,8 +15,6 @@ use Psr\Http\Message\ResponseInterface;
  * Class Model
  * @package Egretos\RestModel
  *
- * TODO model event
- * TODO model -before and -after actions
  * TODO relations with API
  * TODO relations with eloquent
  * TODO Model Facades (from ide-helper)
@@ -27,7 +27,9 @@ use Psr\Http\Message\ResponseInterface;
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {
-    use RestModelFacade;
+    use
+        RestModelFacade,
+        HasEvents;
 
     /** @var mixed used for primary key definition */
     protected $primaryKey = 'id';
@@ -103,11 +105,132 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
     public $urlPrefix;
     public $urlPostfix;
 
+    /**
+     * The array of booted models.
+     *
+     * @var array
+     */
+    protected static $booted = [];
+
+    /**
+     * The event dispatcher instance.
+     *
+     * @var Dispatcher
+     */
+    protected static $dispatcher;
+
+    /**
+     * The array of trait initializers that will be called on each new instance.
+     *
+     * @var array
+     */
+    protected static $traitInitializers = [];
+
     public function __construct(array $attributes = [])
     {
         $this->resetResponseIndexes();
 
+        $this->bootIfNotBooted();
+
+        $this->initializeTraits();
+
+        $this->syncOriginal();
+
         parent::__construct($attributes);
+    }
+
+    /**
+     * Check if the model needs to be booted and if so, do it.
+     *
+     * @return void
+     */
+    protected function bootIfNotBooted()
+    {
+        if (! isset(static::$booted[static::class])) {
+            static::$booted[static::class] = true;
+
+            $this->fireModelEvent('booting', false);
+
+            static::booting();
+            static::boot();
+            static::booted();
+
+            $this->fireModelEvent('booted', false);
+        }
+    }
+
+    /**
+     * Perform any actions required before the model boots.
+     *
+     * @return void
+     */
+    protected static function booting()
+    {
+        //
+    }
+
+    /**
+     * Bootstrap the model and its traits.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        static::bootTraits();
+    }
+
+    /**
+     * Boot all of the bootable traits on the model.
+     *
+     * @return void
+     */
+    protected static function bootTraits()
+    {
+        $class = static::class;
+
+        $booted = [];
+
+        static::$traitInitializers[$class] = [];
+
+        foreach (class_uses_recursive($class) as $trait) {
+            $method = 'boot'.class_basename($trait);
+
+            if (method_exists($class, $method) && ! in_array($method, $booted)) {
+                forward_static_call([$class, $method]);
+
+                $booted[] = $method;
+            }
+
+            if (method_exists($class, $method = 'initialize'.class_basename($trait))) {
+                static::$traitInitializers[$class][] = $method;
+
+                static::$traitInitializers[$class] = array_unique(
+                    static::$traitInitializers[$class]
+                );
+            }
+        }
+    }
+
+    /**
+     * Initialize any initializable traits on the model.
+     *
+     * @return void
+     */
+    protected function initializeTraits()
+    {
+        foreach (static::$traitInitializers[static::class] as $method) {
+            $this->{$method}();
+        }
+    }
+
+    /**
+     * Perform any actions required after the model boots.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        //
     }
 
     /**
@@ -366,5 +489,29 @@ abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
      */
     public static function make($attributes = []) {
         return (new static())->newInstance($attributes);
+    }
+
+    /**
+     * Perform any actions that are necessary after the model is saved.
+     *
+     * @return void
+     */
+    protected function finishSave()
+    {
+        $this->fireModelEvent('saved', false);
+        $this->syncOriginal();
+    }
+
+    /**
+     * @param array|null $except
+     * @return mixed|\Jenssegers\Model\Model|self
+     */
+    public function replicate(array $except = null)
+    {
+        $replicated = parent::replicate($except);
+
+        $this->fireModelEvent('replicated', false);
+
+        return $replicated;
     }
 }

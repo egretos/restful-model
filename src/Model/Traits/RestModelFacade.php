@@ -142,21 +142,39 @@ trait RestModelFacade
         return $this->forceFill($values)->newQuery()->update();
     }
 
-    public function save() {
-        if ($this->exists) {
-            return $this->create();
-        } else {
-            return $this->update();
+    /**
+     * Create the new instance or update it when exists
+     *
+     * @return bool
+     */
+    public function save(): bool
+    {
+        if ($this->fireModelEvent('saving') === false) {
+            return false;
         }
+
+        if ($this->exists) {
+            $saved = (bool) $this->create();
+        } else {
+            $saved = (bool) $this->update();
+        }
+
+        if ($saved) {
+            $this->finishSave();
+        }
+
+        return $saved;
     }
 
     public function increment(string $column, $amount = 1, array $extra = []) {
-        $this->$column += $amount;
-        return $this->forceUpdate($extra);
+        return $this->forceUpdate([
+            $column => $this->$column += $amount
+            ] + $extra);
     }
 
     public function decrement(string $column, $amount = 1, array $extra = []) {
-        $this->$column -= $amount;
-        return $this->forceUpdate($extra);
+        return $this->forceUpdate([
+                $column => $this->$column -= $amount
+            ] + $extra);
     }
 }

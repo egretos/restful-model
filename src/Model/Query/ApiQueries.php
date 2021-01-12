@@ -17,8 +17,6 @@ use Illuminate\Support\Collection;
  */
 trait ApiQueries
 {
-    protected $onDelete;
-
     /**
      * @param Model|null $model
      * @return Connection|Model|Model[]|Collection
@@ -33,7 +31,7 @@ trait ApiQueries
             $this->model->setAttribute($this->model->getRouteKeyName(), null);
         }
 
-        $this->request->method = Request::METHOD_GET;
+        $this->setMethod(Request::METHOD_GET);
 
         $response = $this->send();
 
@@ -50,7 +48,7 @@ trait ApiQueries
             $this->resetRoute();
         }
 
-        $this->request->method = Request::METHOD_GET;
+        $this-$this->setMethod(Request::METHOD_GET);
 
         $response = $this->send();
 
@@ -59,7 +57,7 @@ trait ApiQueries
 
     /**
      * @param Model|null $model
-     * @return Connection|Model|Model[]|Collection
+     * @return Connection|Model|Model[]|Collection|bool
      */
     public function create(Model $model = null) {
         if ($model) {
@@ -71,11 +69,18 @@ trait ApiQueries
             $this->model->setAttribute($this->model->getRouteKeyName(), null);
         }
 
+        if ($this->model->fireModelEvent('creating') === false) {
+            return false;
+        }
+
         $this->setMethod( Request::METHOD_POST );
         $this->prepareModelSaving($model);
 
         $response = $this->send();
+
+        $this->model->exists = true;
         $this->model->wasRecentlyCreated = true;
+        $this->model->fireModelEvent('created', false);
 
         return $this->normalizeResponse($response);
     }
@@ -99,17 +104,23 @@ trait ApiQueries
             return false;
         }
 
-        $this->request->method = Request::METHOD_PUT;
+        if ($this->model->fireModelEvent('updating') === false) {
+            return false;
+        }
+
+        $this->setMethod(Request::METHOD_PUT);
         $this->prepareModelSaving($model);
 
         $response = $this->send();
+
+        $this->model->fireModelEvent('updated', false);
 
         return $this->normalizeResponse($response);
     }
 
     /**
      * @param Model|null $model
-     * @return Connection|Model|Model[]|Collection
+     * @return Connection|Model|Model[]|Collection|bool
      */
     public function delete(Model $model = null) {
         if ($model) {
@@ -117,19 +128,20 @@ trait ApiQueries
             $this->connection = $this->model->getConnection();
         }
 
-        $this->request->method = Request::METHOD_DELETE;
+        if ($this->model instanceof Model && !$model->exists) {
+            return false;
+        }
+
+        if ($this->model->fireModelEvent('deleting') === false) {
+            return false;
+        }
+
+        $this->setMethod(Request::METHOD_DELETE);
 
         $response = $this->send();
 
-        if (isset($this->onDelete)) {
-            return call_user_func($this->onDelete, $this);
-        }
+        $this->model->fireModelEvent('deleted', false);
 
         return $this->normalizeResponse($response);
-    }
-
-    public function onDelete(Closure $callback)
-    {
-        $this->onDelete = $callback;
     }
 }

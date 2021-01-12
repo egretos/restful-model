@@ -219,6 +219,8 @@ final class Builder
                 return $this->loadBodyResponse($this->model, $response);
         }
 
+        $this->model->fireModelEvent('retrieved', false);
+
         return $this->model;
     }
 
