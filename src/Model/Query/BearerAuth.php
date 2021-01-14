@@ -3,6 +3,7 @@
 namespace Egretos\RestModel\Query;
 
 use Egretos\RestModel\Auth\Bearer\Token;
+use Egretos\RestModel\Request;
 use Illuminate\Support\Arr;
 use LogicException;
 
@@ -34,6 +35,7 @@ trait BearerAuth
 
             $response = $builder
                 ->setRoute( $authData['token_route'] )
+                ->setMethod( Request::METHOD_POST )
                 ->send();
 
             $this->setModel( Token::make() );
