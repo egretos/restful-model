@@ -21,7 +21,9 @@ trait BearerAuth
             ->getConfiguration('auth.cache_key', $this->getConnection()->connection.'bearer_token');
 
         if (!$token = cache()->get($cacheKey)) {
-            $builder = new Builder($this->getConnection());
+            /** new request only for login, when the old one is keeping */
+            $builder = (new Builder)->setConnection($this->getConnection());
+
             $response = $builder
                 ->setRoute( $this->getConnection()->getConfiguration('auth.token_route') )
                 ->send();

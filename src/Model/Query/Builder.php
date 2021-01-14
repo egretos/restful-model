@@ -29,7 +29,7 @@ final class Builder
     /** @var Connection|Model  */
     protected $model;
 
-    public function __construct($handled)
+    public function __construct($handled = null)
     {
         if ($handled instanceof Connection) {
             $this->setConnection( $handled );
@@ -40,15 +40,25 @@ final class Builder
             $this->setConnection( $this->model->getConnection() );
         }
 
-        $this->resetRequest();
+        if ($this->getConnection()) {
+            $this->resetRequest();
+        }
     }
 
     /**
-     * @return Connection
+     * @return Connection|null
      */
-    public function getConnection(): Connection
+    public function getConnection(): ?Connection
     {
         return $this->connection;
+    }
+
+    /**
+     * @return bool
+     */
+    public function connectionExists(): bool
+    {
+        return $this->getConnection() !== null;
     }
 
     /**
