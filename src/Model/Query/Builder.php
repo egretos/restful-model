@@ -170,12 +170,15 @@ final class Builder
                 break;
 
             case 'form_data':
-                $this->setFormParam( $authData['login_field'], $authData['login'] );
-                $this->setFormParam( $authData['password_field'], $authData['password'] );
+                $this
+                    ->setFormParam( $authData['login_field'], $authData['login'] )
+                    ->setFormParam( $authData['password_field'], $authData['password'] );
                 break;
 
             case 'bearer':
-                $this->touchToken();
+                $this
+                    ->refreshToken()
+                    ->addHeader('Authorization', "Bearer".$this->getToken());
                 break;
             default:
                 break;

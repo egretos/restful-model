@@ -3,6 +3,7 @@
 namespace Egretos\RestModel\Query;
 
 use Egretos\RestModel\Auth\Bearer\Token;
+use Illuminate\Support\Arr;
 use LogicException;
 
 /**
@@ -16,13 +17,15 @@ trait BearerAuth
     /**
      * @throws
      */
-    public function touchToken() {
-        $cacheKey = $this->getConnection()
-            ->getConfiguration('auth.cache_key', $this->getConnection()->connection.'bearer_token');
+    public function refreshToken(): BearerAuth
+    {
+        $cacheKey = $this->getCacheKey();
 
-        if (!$token = cache()->get($cacheKey)) {
+        if (!$token = $this->getToken()) {
             /** new request only for login, when the old one is keeping */
-            $builder = (new Builder)->setConnection($this->getConnection());
+            $builder = (new Builder)
+                ->resetRequest(false)
+                ->setConnection($this->getConnection());
 
             $response = $builder
                 ->setRoute( $this->getConnection()->getConfiguration('auth.token_route') )
@@ -32,7 +35,7 @@ trait BearerAuth
             $token = $this->normalizeResponse($response);
 
             if ($tokenIndex = $this->getConnection()->getConfiguration('auth.token_index')) {
-                $tokenString = $token->get($tokenIndex);
+                $tokenString = Arr::get($token->attributesToArray(), $tokenIndex);
             } else {
                 $tokenString = $token->get(['body']);
             }
@@ -43,5 +46,24 @@ trait BearerAuth
                 throw new LogicException('Received token is not readable! Check configuration file');
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCacheKey() {
+        return $this->getConnection()
+            ->getConfiguration('auth.cache_key', $this->getConnection()->connection.'bearer_token');
+    }
+
+    /**
+     * @return mixed
+     * @throws
+     */
+    public function getToken()
+    {
+        return cache()->get($this->getCacheKey());
     }
 }
