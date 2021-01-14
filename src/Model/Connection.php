@@ -4,6 +4,7 @@ namespace Egretos\RestModel;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Psr\Http\Message\ResponseInterface;
 
@@ -55,13 +56,7 @@ final class Connection
             ->merge($this->config['connections'][$connection]);
 
         if ($param) {
-            if (isset($config[$param])) {
-                return $config[$param];
-            } elseif ($default) {
-                return $default;
-            } else {
-                return null;
-            }
+            return Arr::get($config, $param, $default);
         } else {
             return $config;
         }
