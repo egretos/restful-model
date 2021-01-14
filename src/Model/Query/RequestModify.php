@@ -212,6 +212,10 @@ trait RequestModify
         return $this;
     }
 
+    /**
+     * @param string $route
+     * @return $this
+     */
     public function setRoute(string $route): self
     {
         $this->getRequest()->setRoute($route);

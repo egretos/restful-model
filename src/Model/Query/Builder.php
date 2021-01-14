@@ -166,7 +166,9 @@ final class Builder
 
         switch ($type) {
             case 'basic_auth':
-                $this->getRequest()->setAuth([$authData['login'], $authData['password']]);
+                $this
+                    ->getRequest()
+                    ->setAuth([$authData['login'], $authData['password']]);
                 break;
 
             case 'form_data':
@@ -187,6 +189,11 @@ final class Builder
         return $this;
     }
 
+    /**
+     * @param Request|null $request
+     * @return ResponseInterface
+     * @throws
+     */
     public function send(Request $request = null): ResponseInterface
     {
         if (!$request) {

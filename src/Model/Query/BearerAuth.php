@@ -19,6 +19,7 @@ trait BearerAuth
      */
     public function refreshToken(): BearerAuth
     {
+        $authData = $this->getConnection()->getConfiguration()->get('auth');
         $cacheKey = $this->getCacheKey();
 
         if (!$token = $this->getToken()) {
@@ -27,14 +28,18 @@ trait BearerAuth
                 ->resetRequest(false)
                 ->setConnection($this->getConnection());
 
+            $builder
+                ->getRequest()
+                ->setAuth([$authData['login'], $authData['password']]);
+
             $response = $builder
-                ->setRoute( $this->getConnection()->getConfiguration('auth.token_route') )
+                ->setRoute( $authData['token_route'] )
                 ->send();
 
             $this->setModel( Token::make() );
             $token = $this->normalizeResponse($response);
 
-            if ($tokenIndex = $this->getConnection()->getConfiguration('auth.token_index')) {
+            if ($tokenIndex = $authData['token_index']) {
                 $tokenString = Arr::get($token->attributesToArray(), $tokenIndex);
             } else {
                 $tokenString = $token->get(['body']);
