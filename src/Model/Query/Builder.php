@@ -354,7 +354,7 @@ final class Builder
         $model->syncOriginal();
 
         switch ($this->connection->getConfiguration('content-type')) {
-            case 'www-form':
+            case 'www-form': case 'x-www-form-urlencoded':
                 $this->addFormParams( $model->getSendAbleAttributes() );
                 break;
             case 'json':

@@ -118,7 +118,7 @@ final class Request
      */
     public function getFormParams()
     {
-        return $this->form_params;
+        return $this->form_params ?? [];
     }
 
     public function setFormParam($param, $value) {
