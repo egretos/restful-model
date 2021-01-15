@@ -12,6 +12,8 @@ use LogicException;
  * @package Egretos\RestModel\Query
  *
  * @mixin Builder
+ *
+ * TODO maybe we should remove it
  */
 trait BearerAuth
 {

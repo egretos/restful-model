@@ -110,8 +110,7 @@ trait HasEvents
     {
         return [
                 'retrieved', 'creating', 'created', 'updating', 'updated',
-                'saving', 'saved', 'restoring', 'restored', 'replicating',
-                'deleting', 'deleted', 'forceDeleted',
+                'saving', 'saved', 'replicating', 'deleting', 'deleted', 'faulted'
             ] + $this->observables;
     }
 

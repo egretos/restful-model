@@ -7,6 +7,7 @@ namespace Egretos\RestModel\Query;
 use Egretos\RestModel\Connection;
 use Egretos\RestModel\Model;
 use Egretos\RestModel\Request;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
 use JsonException;
 use LogicException;
@@ -180,7 +181,7 @@ final class Builder
             case 'bearer':
                 $this
                     ->refreshToken()
-                    ->addHeader('Authorization', "Bearer".$this->getToken());
+                    ->addHeader('Authorization', "Bearer ".$this->getToken());
                 break;
             default:
                 break;
@@ -191,10 +192,10 @@ final class Builder
 
     /**
      * @param Request|null $request
-     * @return ResponseInterface
+     * @return ResponseInterface|null
      * @throws
      */
-    public function send(Request $request = null): ResponseInterface
+    public function send(Request $request = null): ?ResponseInterface
     {
         if (!$request) {
             $request = $this->request;
@@ -212,7 +213,22 @@ final class Builder
             $this->model->lastRequest = $request;
         }
 
-        return $this->connection->send($request);
+        try {
+            $result = $this->connection->send($request);
+        } catch (RequestException $exception) {
+            $result = $exception->getResponse();
+        }
+
+        if ($this->model instanceof Model) {
+            $this->model->lastResponse = $result;
+            $this->model->fireModelEvent('retrieved', false);
+
+            if (isset($exception)) {
+                $this->model->fireModelEvent('faulted', false);
+            }
+        }
+
+        return $result ?? null;
     }
 
     /**
@@ -238,8 +254,6 @@ final class Builder
             case 'body':
                 return $this->loadBodyResponse($this->model, $response);
         }
-
-        $this->model->fireModelEvent('retrieved', false);
 
         return $this->model;
     }

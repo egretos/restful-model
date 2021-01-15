@@ -24,6 +24,7 @@ use Psr\Http\Message\ResponseInterface;
  *
  * TODO save quietly
  * TODO is() method
+ * TODO guzzleHttp exception catcher
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {

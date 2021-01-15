@@ -172,3 +172,5 @@ use Egretos\RestModel\Request;
 ## Replicating models
 
 ## Configuration
+
+## Handle HTTP Exceptions
