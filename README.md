@@ -131,21 +131,19 @@ foreach (Post::all() as $post) {
 ### Retrieving single models
 
 In case when you need to get a one model, next methods should help you:
-````php
 
+````php
 /** GET http://jsonplaceholder.typicode.com/posts/1 */
 Post::find(1);
 
 /** GET http://jsonplaceholder.typicode.com/posts?title=Lorem */
 Post::where('title', 'Lorem')->first();
-
 ````
 
 ### HTTP query builder
 
 The `all` method will do a `GET` request to `/posts` resource and then map all results into `Post` objects.
 In case when we need to modify a request use query builder such like Laravel Eloquent query builder.
-
 
 ````php
 use Egretos\RestModel\Request;
@@ -154,12 +152,56 @@ use Egretos\RestModel\Request;
         ->addHeader('Content-Language', 'en') // Puts new header to request
         ->setMethod(Request::METHOD_OPTIONS) // Set OPTIONS request method
         ->where('title', 'Lorem') // Sets query `title` param to `Lorem`
-        ->send(); // Gets raw response
+        ->send(); // Send a request. Here we get a response
 ````
 
 ## Save model
 
-## create and update
+You can use `$model->save()` method just like in Eloquent.
+This action will do `update()` if model is exists and `update` when model is not.
+
+Create case:
+````php
+$post = new Post;
+$post->title = 'This title will be updated';
+
+/** POST http://jsonplaceholder.typicode.com/posts */
+$post->save();
+````
+
+Update case:
+````php
+/** GET http://jsonplaceholder.typicode.com/posts/1 */
+$post = Post::find(1);
+$post->title = 'This title will be updated';
+
+/** PUT http://jsonplaceholder.typicode.com/posts/1 */
+$post->save();
+````
+
+## Create and update actions
+
+`save()` method can be unpredictable or unclear in some cases, 
+so there are `create` and `update()` methods.
+
+Create method will send a POST request with model attributes as data
+````php
+$post = new Post;
+$post->title = 'This title will be updated';
+
+/** POST http://jsonplaceholder.typicode.com/posts */
+$post->create();
+````
+
+Update method will do PUT request to route with `id` at the end
+````php
+/** GET http://jsonplaceholder.typicode.com/posts/1 */
+$post = Post::find(1);
+$post->title = 'This title will be updated';
+
+/** PUT http://jsonplaceholder.typicode.com/posts/1 */
+$post->update();
+````
 
 ## first or find or
 

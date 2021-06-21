@@ -114,9 +114,9 @@ final class Request
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function getFormParams()
+    public function getFormParams(): array
     {
         return $this->form_params ?? [];
     }

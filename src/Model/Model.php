@@ -16,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
  * @package Egretos\RestModel
  *
  * TODO relations with API (+ push)
- * TODO relations with eloquent
+ * TODO relations with eloquent (do we need it?)
  * TODO Model Facades (from ide-helper)
  * TODO add scopes
  * TODO add casts attributes
@@ -27,6 +27,7 @@ use Psr\Http\Message\ResponseInterface;
  * TODO guzzleHttp exception catcher
  *
  * TODO saveOrFail, ModelCollection
+ * TODO add tests
  */
 abstract class Model extends \Jenssegers\Model\Model implements UrlRoutable
 {
