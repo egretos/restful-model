@@ -22,6 +22,11 @@
             "Egretos\\RestModel\\": "src/Model/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Egretos\\RestModel\\": "tests"
+        }
+    },
     "prefer-stable": true,
     "require": {
         "php": ">=7.2",
